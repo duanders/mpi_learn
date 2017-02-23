@@ -37,6 +37,7 @@ if __name__ == '__main__':
 
     # configuration of network topology
     parser.add_argument('--masters', help='number of master processes', default=1, type=int)
+    parser.add_argument('--master-only',help='use no workers',action='store_true',dest='master_only')
     parser.add_argument('--max-gpus', dest='max_gpus', help='max GPUs to use', 
             type=int, default=-1)
     parser.add_argument('--master-gpu',help='master process should get a gpu',
@@ -134,7 +135,32 @@ if __name__ == '__main__':
         print (algo)
 
         t_0 = time()
-        histories = manager.process.train() 
+        if args.master_only:
+            ## need to compile the model first
+            manager.process.algo.compile_model( manager.process.model )
+            data.file_names = train_list
+            samples_per_epoch = data.count_data()
+            #print (samples_per_epoch,"samples to look at")
+            nb_val_samples = val_data.count_data()
+            #print (nb_val_samples,"samples to validate on")
+            #print ("starting to fit on generator data")
+            if validate_every <=0:
+                histories = manager.process.model.fit_generator( data.generate_data_inf(), 
+                                                                 samples_per_epoch,
+                                                                 args.epochs,
+                                                                 callbacks= callbacks,
+                                                                 )
+            else:
+                histories = manager.process.model.fit_generator( data.generate_data_inf(), 
+                                                                 samples_per_epoch,
+                                                                 args.epochs,
+                                                                 callbacks= callbacks,
+                                                                 validation_data= val_data.generate_data_inf(),
+                                                                 nb_val_samples = nb_val_samples
+                                                                 )
+            histories = histories.history
+        else:
+            histories = manager.process.train() 
         delta_t = time() - t_0
         manager.free_comms()
         print ("Training finished in {0:.3f} seconds".format(delta_t))
