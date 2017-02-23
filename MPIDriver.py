@@ -60,6 +60,10 @@ if __name__ == '__main__':
             type=float, default=1.0, dest='elastic_lr')
     parser.add_argument('--elastic-momentum',help='worker SGD momentum for EASGD',
             type=float, default=0, dest='elastic_momentum')
+    parser.add_argument('--validate-every', help='how often to run validation on the master', 
+                        default=-1, type=int, dest='validate_every')
+    parser.add_argument('--validate-fraction-every', help='what fraction of the default validation on the master to run', 
+                        default=-1., type=float, dest='validate_fraction_every')
 
     args = parser.parse_args()
     model_name = os.path.basename(args.model_json).replace('.json','')
@@ -93,11 +97,18 @@ if __name__ == '__main__':
 
     data = H5Data( batch_size=args.batch, 
             features_name=args.features_name, labels_name=args.labels_name )
+    val_data = H5Data( batch_size=args.batch, 
+            features_name=args.features_name, labels_name=args.labels_name )
+
     # We initialize the Data object with the training data list
     # so that we can use it to count the number of training examples
     data.set_file_names( train_list )
-    validate_every = data.count_data()/args.batch 
-
+    val_data.set_file_names ( val_list )
+    default_validate_every = data.count_data()/args.batch 
+    validate_every = default_validate_every
+    if args.validate_every>=0: validate_every = args.validate_every
+    if args.validate_fraction_every>=0: validate_every = int(default_validate_every* args.validate_fraction_every)
+    
     # Some input arguments may be ignored depending on chosen algorithm
     if args.easgd:
         algo = Algo(None, loss=args.loss, validate_every=validate_every,
