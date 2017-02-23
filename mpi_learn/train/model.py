@@ -30,7 +30,7 @@ class ModelFromJson(ModelBuilder):
     def __init__(self, comm, filename=None,json_str=None, custom_objects={}):
         self.filename = filename
         self.json_str = json_str
-	self.custom_objects = custom_objects
+        self.custom_objects = custom_objects
         super(ModelFromJson, self).__init__(comm)
 
     def build_model(self):
