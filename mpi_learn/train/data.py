@@ -142,7 +142,7 @@ class H5Data(Data):
             h5_file = h5py.File( in_file_name, 'r' )
             X = h5_file[self.features_name]
             if hasattr(X, 'keys'):
-                num_data += len(X[ X.keys()[0] ])
+                num_data += len(X[ list(X.keys())[0] ])
             else:
                 num_data += len(X)
             h5_file.close()
