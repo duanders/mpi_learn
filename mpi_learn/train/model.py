@@ -31,7 +31,7 @@ class ModelFromJson(ModelBuilder):
         self.filename = filename
         self.json_str = json_str
         self.weights = weights
-	self.custom_objects = custom_objects
+        self.custom_objects = custom_objects
         super(ModelFromJson, self).__init__(comm)
 
     def build_model(self):
@@ -47,11 +47,11 @@ class ModelFromJsonTF(ModelBuilder):
     """
 
     def __init__(self, comm, filename=None, json_str=None, device_name='cpu', 
-            custom_objects={}, weights=None):
+                 custom_objects={}, weights=None):
         self.filename = filename
         self.json_str = json_str
         self.weights = weights
-	self.custom_objects = custom_objects
+        self.custom_objects = custom_objects
         self.device = self.get_device_name(device_name)
         super(ModelFromJsonTF, self).__init__(comm)
 
@@ -66,11 +66,11 @@ class ModelFromJsonTF(ModelBuilder):
                 dev_num = int(device[3:])
                 dev_type = 'gpu'
             except ValueError:
-                print "GPU number could not be parsed from {}; using CPU".format(device)
+                print ("GPU number could not be parsed from {}; using CPU".format(device))
                 dev_num = 0
                 dev_type = 'cpu'
         else:
-            print "Please specify 'cpu' or 'gpuN' for device name"
+            print ("Please specify 'cpu' or 'gpuN' for device name")
             dev_num = 0
             dev_type = 'cpu'
         return get_device_name(dev_type, dev_num, backend='tensorflow')
@@ -81,7 +81,11 @@ class ModelFromJsonTF(ModelBuilder):
             allow_soft_placement=True, log_device_placement=False,
             gpu_options=K.tf.GPUOptions(
                 per_process_gpu_memory_fraction=1./self.comm.Get_size()) ) ) )
-        with K.tf.device(self.device):
+        if ':' in self.device:
+            with K.tf.device(self.device):
+                model = load_model(filename=self.filename, json_str=self.json_str, 
+                                   custom_objects=self.custom_objects, weights_file=self.weights)
+        else:
             model = load_model(filename=self.filename, json_str=self.json_str, 
-                    custom_objects=self.custom_objects, weights_file=self.weights)
+                               custom_objects=self.custom_objects, weights_file=self.weights)
         return model
