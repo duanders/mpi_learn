@@ -26,7 +26,10 @@ def get_device_name(dev_type, dev_num, backend='theano'):
     """Returns cpu/gpu device name formatted for
     theano or keras, as specified by the backend argument"""
     if backend == 'tensorflow':
-        return "/%s:%d" % (dev_type, dev_num)
+        if dev_type == 'gpu':
+            return "/%s:%d" % (dev_type, dev_num)
+        else:
+            return "/cpu"
     else:
         if dev_type == 'cpu':
             return 'cpu'
