@@ -75,7 +75,7 @@ if __name__ == '__main__':
     # In the theano case it is necessary to specify the device before importing.
     device = get_device( comm, args.masters, gpu_limit=args.max_gpus,
                 gpu_for_master=args.master_gpu)
-    if args.tf: 
+    if args.tf or os.environ['KERAS_BACKEND'] == 'tensorflow': 
         backend = 'tensorflow'
         model_builder = ModelFromJsonTF( comm, args.model_json, device_name=device , weights=args.model_weights)
         print ("Process {0} using device {1}".format(comm.Get_rank(), model_builder.device))
