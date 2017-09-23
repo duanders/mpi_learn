@@ -16,9 +16,15 @@ def shapes_from_weights(weights):
 def get_num_gpus():
     """Returns the number of GPUs available"""
     print ("Determining number of GPUs...")
-    from pycuda import driver 
-    driver.init()
-    num_gpus = driver.Device.count()
+    try:
+        from pycuda import driver 
+        driver.init()
+        num_gpus = driver.Device.count()
+    except:
+        import gpustat
+        gpu_stats = gpustat.GPUStatCollection.new_query()
+        num_gpus = len(gpu_stats.gpus.keys())
+        
     print ("Number of GPUs: {}".format(num_gpus))
     return num_gpus
 
