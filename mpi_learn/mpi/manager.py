@@ -59,7 +59,8 @@ def get_device(comm, num_masters=1, gpu_limit=-1, gpu_for_master=False):
     if worker_id < 0:# or worker_id > max_gpu:
         return 'cpu'
     else:
-        return 'gpu%d' % (worker_id%(max_gpu+1))
+        #return 'gpu%d' % (worker_id%(max_gpu+1))
+        return 'cuda%d' % (worker_id%(max_gpu+1))
 
 class MPIManager(object):
     """The MPIManager class defines the topology of the MPI process network
