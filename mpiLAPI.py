@@ -40,6 +40,7 @@ class mpi_learn_api:
             try:
                 f = h5py.File(fn)
                 l = sorted(f.keys())
+                assert len(l)!=0
                 f.close()
             except:
                 print fn,"not usable"
