@@ -23,7 +23,7 @@ if __name__ == '__main__':
 
     # model arguments
     parser.add_argument('model_json', help='JSON file containing model architecture')
-    parser.add_argument('--model_weights', help='Provide the h5 file with weights', default=None)
+    parser.add_argument('--model-weights', help='Provide the h5 file with weights', default=None)
     parser.add_argument('--trial-name', help='descriptive name for trial', 
             default='train', dest='trial_name')
 
