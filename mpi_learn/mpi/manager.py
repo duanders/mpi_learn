@@ -35,7 +35,7 @@ def get_device(comm, num_masters=1, gpu_limit=-1, gpu_for_master=False):
        Returns device name 'cpu' or 'gpuN' appropriate for use with theano""" 
     rank = comm.Get_rank()
     if gpu_for_master:
-        gpu_ranks = range(comm.Get_size())
+        gpu_ranks = list(range(comm.Get_size()))
     else:
         gpu_ranks = get_worker_ranks( comm, num_masters )
 
@@ -53,13 +53,24 @@ def get_device(comm, num_masters=1, gpu_limit=-1, gpu_for_master=False):
     # get_num_gpus will fail if CUDA is not installed, so we short circuit if 0 GPUs are requested
     if gpu_limit == 0:
         return 'cpu'
-    max_gpu = get_num_gpus() - 1
-    if gpu_limit > 0:
-        max_gpu = min( max_gpu, gpu_limit-1 )
-    if worker_id < 0:# or worker_id > max_gpu:
+
+    def get_gpu_list():
+        import gpustat
+        stats = gpustat.GPUStatCollection.new_query()
+        ids = list(map(lambda gpu: int(gpu.entry['index']), stats))
+        ratios = map(lambda gpu: float(gpu.entry['memory.used'])/float(gpu.entry['memory.total']), stats)
+        used = list(map(lambda gpu: float(gpu.entry['memory.used']), stats))
+        unused_gpu = filter(lambda x: x[1] < 100.0, zip(ids, used))
+        return [x[0] for x in unused_gpu]
+
+    gpu_list = get_gpu_list()
+    if worker_id < 0 or len(gpu_list) == 0:
+        print("No free GPU available. Using CPU instead.")
         return 'cpu'
     else:
-        return 'gpu%d' % (worker_id%(max_gpu+1))
+        max_gpu = len(gpu_list)
+        return 'gpu%d' % (gpu_list[worker_id % (max_gpu)])
+
 
 class MPIManager(object):
     """The MPIManager class defines the topology of the MPI process network
